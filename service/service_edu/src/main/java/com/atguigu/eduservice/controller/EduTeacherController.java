@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.http.Header;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ import java.util.List;
 @Api(tags="讲师管理")
 @RestController
 @RequestMapping("/eduservice/edu-teacher")
+@CrossOrigin
 public class EduTeacherController {
     //http://localhost:8001/swagger-ui.html  swagger入口
     //访问地址 http://localhost:8001/eduservice/edu-teacher/findAll
@@ -40,11 +42,6 @@ public class EduTeacherController {
     @ApiOperation(value="所有讲师列表")
     @GetMapping("findAll")
     public R findAllTeacher(){
-        try {
-            int i = 10/0;
-        } catch (Exception e) {
-           throw new GuliException(20001,"执行GuliException");
-        }
         List<EduTeacher> list = teacherService.list(null);
         return R.ok().data("items",list);
     }
@@ -52,18 +49,13 @@ public class EduTeacherController {
     //删除
     @ApiOperation(value="逻辑删除讲师")
     @DeleteMapping("{id}")
-    public R removeTeacher (@ApiParam(name = "id", value = "讲师ID", required = true)
-                                   @PathVariable String id){
-        boolean flag =  teacherService.removeById(id);
-        if (flag){
-            return R.ok();
-        }else {
-            return R.error();
-        }
+    public boolean removeTeacher (@ApiParam(name = "id", value = "讲师ID", required = true)
+                                   @PathVariable Long id){
+        return teacherService.removeById(id);
     }
 
     @ApiOperation(value = "分页讲师列表")
-    @GetMapping("pageTacher/{page}/{limit}")
+    @GetMapping ("pageTacher/{page}/{limit}")
     public R pageList(
             @ApiParam(name = "page", value = "当前页码", required = true)
             @PathVariable Long page,
@@ -86,15 +78,15 @@ public class EduTeacherController {
     }
 
     @ApiOperation(value = "讲师条件查询")
-    @PostMapping("pageTacherCondition/{page}/{limit}")
+    @PostMapping("pageTeacherCondition/{current}/{limit}")
     public R pageQuery(
-            @ApiParam(name = "page", value = "当前页码", required = true)
-            @PathVariable Long page,
+            @ApiParam(name = "current", value = "当前页码", required = true)
+            @PathVariable Long current,
             @ApiParam(name = "limit", value = "每页记录数", required = true)
             @PathVariable Long limit,
             @ApiParam(name = "teacherQuery", value = "查询对象", required = false)
             @RequestBody(required = false) TeacherQuery teacherQuery){
-        Page<EduTeacher> pageParam =  new Page<>(page,limit);
+        Page<EduTeacher> pageParam =  new Page<>(current,limit);
         //构建条件
         QueryWrapper<EduTeacher> wrapper = new QueryWrapper<>();
         //多条件查询
@@ -111,12 +103,15 @@ public class EduTeacherController {
         if (!StringUtils.isEmpty(level)){
             wrapper.eq("level",level);
         }
-        if (!StringUtils.isEmpty(level)){
+        if (!StringUtils.isEmpty(begin)){
             wrapper.ge("gmt_create",begin);
         }
-        if (!StringUtils.isEmpty(level)){
+        if (!StringUtils.isEmpty(end)){
             wrapper.le("gmt_modified",end);
         }
+
+        //使用创建时间做降序排序
+        wrapper.orderByDesc("gmt_create");
 
         //调用方法实现条件分页
         teacherService.page(pageParam,wrapper);
@@ -138,6 +133,7 @@ public class EduTeacherController {
         }
     }
 
+    @ApiOperation(value = "根据id查询讲师")
     @GetMapping("getTeacher/{id}")
     public R getTeacher(@PathVariable String id){
         EduTeacher teacher = teacherService.getById(id);
