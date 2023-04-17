@@ -74,7 +74,6 @@ public class SubjectExcelListener extends AnalysisEventListener<SubjectData> {
     //读取完成之后执行这个方法
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-        System.out.println("监听成功");
     }
 }
 
