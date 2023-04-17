@@ -61,6 +61,7 @@ public class SubjectExcelListener extends AnalysisEventListener<SubjectData> {
         return oneSubject;
     }
 
+
     //判断二级分类是否重复
     private EduSubject existTwoSubject(EduSubjectService subjectService, String name, String pid) {
         QueryWrapper<EduSubject> wrapper = new QueryWrapper<>();
@@ -73,6 +74,7 @@ public class SubjectExcelListener extends AnalysisEventListener<SubjectData> {
     //读取完成之后执行这个方法
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+        System.out.println("监听成功");
     }
 }
 
